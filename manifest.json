@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Transcript to Docs",
+  "version": "1.0.0",
+  "description": "Save YouTube video transcripts to Google Docs with Gemini AI summaries",
+
+  "permissions": [
+    "identity",
+    "storage",
+    "sidePanel",
+    "activeTab",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "https://*.googleapis.com/*",
+    "https://www.youtube.com/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+
+  "oauth2": {
+    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/youtube.readonly"
+    ]
+  },
+
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  },
+
+  "action": {
+    "default_title": "YouTube Transcript to Docs",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content/youtube.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ],
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

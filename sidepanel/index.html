@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Transcript to Docs</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <!-- Tab navigation -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="save">저장</button>
+    <button class="tab-btn" data-tab="settings">설정</button>
+    <button class="tab-btn" data-tab="history">기록</button>
+  </nav>
+
+  <!-- ── Save tab ─────────────────────────────────────────── -->
+  <section id="tab-save" class="tab-content active">
+
+    <!-- Video info -->
+    <div id="video-info" class="video-card hidden">
+      <img id="thumbnail" class="thumbnail" src="" alt="썸네일" />
+      <div class="video-meta">
+        <p id="video-title" class="video-title"></p>
+        <p id="video-channel" class="video-channel"></p>
+      </div>
+    </div>
+
+    <!-- Error states -->
+    <div id="error-no-video" class="error-msg hidden">
+      YouTube 동영상 페이지에서 실행해주세요.
+    </div>
+    <div id="error-no-caption" class="error-msg hidden">
+      이 영상에는 자막이 없습니다.
+    </div>
+    <div id="error-no-settings" class="error-msg hidden">
+      설정 탭에서 Doc ID와 로그인을 완료해주세요.
+    </div>
+
+    <!-- Options -->
+    <div id="save-options" class="options hidden">
+      <label class="option-row">
+        <input type="checkbox" id="opt-timeline" /> 타임라인 포함
+      </label>
+      <label class="option-row">
+        <input type="checkbox" id="opt-summary" /> AI 요약 (Gemini 키 필요)
+      </label>
+      <div class="option-row">
+        <label for="opt-language">언어:</label>
+        <select id="opt-language">
+          <option value="한국어">한국어</option>
+          <option value="English">English</option>
+          <option value="日本語">日本語</option>
+          <option value="中文">中文</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button id="btn-save" class="btn-primary" disabled>저장하기</button>
+
+    <!-- Progress -->
+    <ul id="progress-list" class="progress-list hidden">
+      <li data-step="transcript">
+        <span class="progress-icon">○</span> 자막 추출
+      </li>
+      <li data-step="metadata">
+        <span class="progress-icon">○</span> 영상 정보 조회
+      </li>
+      <li data-step="thumbnail" class="optional">
+        <span class="progress-icon">○</span> 썸네일 설명 생성
+      </li>
+      <li data-step="summary" class="optional">
+        <span class="progress-icon">○</span> AI 요약 생성
+      </li>
+      <li data-step="docs">
+        <span class="progress-icon">○</span> Google Docs 저장
+      </li>
+    </ul>
+
+    <div id="save-result" class="save-result hidden"></div>
+  </section>
+
+  <!-- ── Settings tab ─────────────────────────────────────── -->
+  <section id="tab-settings" class="tab-content hidden">
+
+    <div class="settings-section">
+      <h3>Google 계정</h3>
+      <div id="auth-status" class="auth-status">확인 중…</div>
+      <button id="btn-login" class="btn-secondary hidden">로그인</button>
+      <button id="btn-logout" class="btn-secondary hidden">로그아웃</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Google Docs 문서 ID</h3>
+      <p class="help-text">문서 URL에서 /d/ 뒤의 ID를 입력하세요.</p>
+      <input type="text" id="input-doc-id" class="text-input" placeholder="문서 ID" />
+      <button id="btn-save-settings" class="btn-secondary">저장</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Gemini API 키 (선택)</h3>
+      <p class="help-text">AI 요약 및 썸네일 설명에 사용됩니다.</p>
+      <input type="password" id="input-gemini-key" class="text-input" placeholder="API 키" />
+      <button id="btn-save-gemini" class="btn-secondary">저장</button>
+    </div>
+
+    <div id="settings-saved" class="success-msg hidden">설정이 저장되었습니다.</div>
+  </section>
+
+  <!-- ── History tab ──────────────────────────────────────── -->
+  <section id="tab-history" class="tab-content hidden">
+    <div id="history-empty" class="empty-msg hidden">저장 기록이 없습니다.</div>
+    <ul id="history-list" class="history-list"></ul>
+  </section>
+
+  <script src="panel.js" type="module"></script>
+</body>
+</html>
