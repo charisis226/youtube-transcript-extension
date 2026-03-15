@@ -19,7 +19,7 @@
   ],
 
   "oauth2": {
-    "client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+    "client_id": "222990237050-t2mrf74gujvi7rrl275u219f2aarr8as.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/documents",
       "https://www.googleapis.com/auth/youtube.readonly"
