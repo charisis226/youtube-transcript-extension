@@ -58,6 +58,47 @@ async function handleGetCurrentVideo(sendResponse) {
     "channelTitle",
     "captionTracks",
   ]);
+
+  if (data.videoId) {
+    sendResponse(data);
+    return;
+  }
+
+  // Fallback: query the active tab directly if session storage is empty
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url?.includes("youtube.com/watch")) {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: "MAIN",
+        func: () => {
+          const videoId = new URLSearchParams(window.location.search).get("v");
+          if (!videoId) return null;
+          const playerResponse = window.ytInitialPlayerResponse;
+          const captionTracks =
+            playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+          const title =
+            document.querySelector("h1.ytd-video-primary-info-renderer")?.textContent?.trim() ||
+            document.querySelector("h1.style-scope.ytd-watch-metadata")?.textContent?.trim() ||
+            document.title.replace(" - YouTube", "").trim();
+          const channelTitle =
+            document.querySelector("#channel-name #text")?.textContent?.trim() ||
+            document.querySelector("ytd-channel-name #text")?.textContent?.trim() ||
+            "";
+          return { videoId, title, channelTitle, captionTracks };
+        },
+      });
+      const videoInfo = results?.[0]?.result;
+      if (videoInfo?.videoId) {
+        await chrome.storage.session.set(videoInfo);
+        sendResponse(videoInfo);
+        return;
+      }
+    }
+  } catch {
+    // fallthrough
+  }
+
   sendResponse(data);
 }
 

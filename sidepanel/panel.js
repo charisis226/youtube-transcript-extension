@@ -64,6 +64,9 @@ init();
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 async function refreshAuthStatus() {
+  const errorEl = document.getElementById("auth-error");
+  errorEl.classList.add("hidden");
+
   try {
     const result = await chrome.runtime.sendMessage({ type: "GET_AUTH_TOKEN" });
     if (result?.token) {
@@ -72,10 +75,16 @@ async function refreshAuthStatus() {
     } else {
       authToken = null;
       setAuthUI(false);
+      if (result?.error) {
+        errorEl.textContent = `로그인 실패: ${result.error}`;
+        errorEl.classList.remove("hidden");
+      }
     }
-  } catch {
+  } catch (e) {
     authToken = null;
     setAuthUI(false);
+    errorEl.textContent = `로그인 오류: ${e.message}`;
+    errorEl.classList.remove("hidden");
   }
 }
 
