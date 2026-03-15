@@ -192,9 +192,21 @@ async function handleSaveTranscript(message, sendResponse) {
     );
     notify("transcript", "done");
 
-    // Step 2: Fetch metadata
+    // Step 2: Fetch metadata (fallback to basic info if API unavailable)
     notify("metadata", "loading");
-    const metadata = await fetchVideoMetadata(videoId, options.authToken);
+    let metadata;
+    try {
+      metadata = await fetchVideoMetadata(videoId, options.authToken);
+    } catch (err) {
+      metadata = {
+        title,
+        channelTitle,
+        publishedAt: "",
+        viewCount: "0",
+        tags: [],
+        thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+      };
+    }
     notify("metadata", "done");
 
     // Step 3: Thumbnail description (optional)
