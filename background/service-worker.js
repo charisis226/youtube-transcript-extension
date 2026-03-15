@@ -269,22 +269,12 @@ async function makePageContextFetcher() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab) return null;
-    return async (url) => {
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        world: "MAIN",
-        func: async (fetchUrl) => {
-          try {
-            const resp = await fetch(fetchUrl);
-            return resp.ok ? await resp.text() : "";
-          } catch {
-            return "";
-          }
-        },
-        args: [url],
+    return (url) =>
+      new Promise((resolve) => {
+        chrome.tabs.sendMessage(tab.id, { type: "FETCH_URL", url }, (response) => {
+          resolve(response?.text || "");
+        });
       });
-      return results?.[0]?.result || "";
-    };
   } catch {
     return null;
   }
