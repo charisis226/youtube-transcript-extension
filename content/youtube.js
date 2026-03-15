@@ -43,13 +43,10 @@
     const channelTitle = getChannelTitle();
     const captionTracks = getCaptionTracks();
 
-    chrome.runtime.sendMessage({
-      type: "VIDEO_CHANGED",
-      videoId,
-      title,
-      channelTitle,
-      captionTracks,
-    });
+    window.postMessage(
+      { source: "yt-transcript-ext", type: "VIDEO_CHANGED", videoId, title, channelTitle, captionTracks },
+      "*"
+    );
   }
 
   // Initial send on page load

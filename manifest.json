@@ -52,6 +52,11 @@
       "js": ["content/youtube.js"],
       "run_at": "document_idle",
       "world": "MAIN"
+    },
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content/bridge.js"],
+      "run_at": "document_idle"
     }
   ],
 
