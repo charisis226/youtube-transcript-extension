@@ -8,6 +8,7 @@ from flask_cors import CORS
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 
 app = Flask(__name__)
+app.config["LOAD_DOTENV"] = False
 CORS(app, origins=["chrome-extension://*"])
 
 
