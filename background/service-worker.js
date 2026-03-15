@@ -35,6 +35,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       handleGetAuthToken(sendResponse);
       return true; // async
 
+    case "LOGIN":
+      handleLogin(sendResponse);
+      return true;
+
+    case "LOGOUT":
+      handleLogout(sendResponse);
+      return true;
+
     case "SAVE_TRANSCRIPT":
       handleSaveTranscript(message, sendResponse);
       return true; // async
@@ -103,12 +111,62 @@ async function handleGetCurrentVideo(sendResponse) {
 }
 
 async function handleGetAuthToken(sendResponse) {
+  // Silent check — returns stored token if still valid
+  const { authToken, authTokenExpiry } = await chrome.storage.local.get([
+    "authToken",
+    "authTokenExpiry",
+  ]);
+  if (authToken && authTokenExpiry && Date.now() < authTokenExpiry) {
+    sendResponse({ token: authToken });
+  } else {
+    sendResponse({});
+  }
+}
+
+async function handleLogin(sendResponse) {
   try {
-    const token = await chrome.identity.getAuthToken({ interactive: true });
-    sendResponse({ token });
+    const clientId =
+      "222990237050-t2mrf74gujvi7rrl275u219f2aarr8as.apps.googleusercontent.com";
+    const scopes = [
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/youtube.readonly",
+    ];
+    const redirectUri = chrome.identity.getRedirectURL();
+
+    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("response_type", "token");
+    authUrl.searchParams.set("scope", scopes.join(" "));
+    authUrl.searchParams.set("prompt", "select_account");
+
+    const responseUrl = await chrome.identity.launchWebAuthFlow({
+      url: authUrl.toString(),
+      interactive: true,
+    });
+
+    const hash = new URL(responseUrl).hash.slice(1);
+    const params = new URLSearchParams(hash);
+    const token = params.get("access_token");
+    const expiresIn = parseInt(params.get("expires_in") || "3600", 10);
+
+    if (token) {
+      await chrome.storage.local.set({
+        authToken: token,
+        authTokenExpiry: Date.now() + (expiresIn - 300) * 1000,
+      });
+      sendResponse({ token });
+    } else {
+      sendResponse({ error: "토큰을 받지 못했습니다." });
+    }
   } catch (error) {
     sendResponse({ error: error.message });
   }
+}
+
+async function handleLogout(sendResponse) {
+  await chrome.storage.local.remove(["authToken", "authTokenExpiry"]);
+  sendResponse({ success: true });
 }
 
 async function handleGetHistory(sendResponse) {

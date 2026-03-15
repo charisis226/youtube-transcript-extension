@@ -106,15 +106,29 @@ function setAuthUI(loggedIn) {
 }
 
 document.getElementById("btn-login").addEventListener("click", async () => {
-  await refreshAuthStatus();
+  const errorEl = document.getElementById("auth-error");
+  errorEl.classList.add("hidden");
+  document.getElementById("btn-login").disabled = true;
+
+  const result = await chrome.runtime.sendMessage({ type: "LOGIN" }).catch((e) => ({
+    error: e.message,
+  }));
+
+  document.getElementById("btn-login").disabled = false;
+
+  if (result?.token) {
+    authToken = result.token;
+    setAuthUI(true);
+  } else {
+    errorEl.textContent = `로그인 실패: ${result?.error || "알 수 없는 오류"}`;
+    errorEl.classList.remove("hidden");
+  }
 });
 
 document.getElementById("btn-logout").addEventListener("click", async () => {
-  if (authToken) {
-    await chrome.identity.removeCachedAuthToken({ token: authToken });
-    authToken = null;
-    setAuthUI(false);
-  }
+  await chrome.runtime.sendMessage({ type: "LOGOUT" });
+  authToken = null;
+  setAuthUI(false);
 });
 
 // ── Settings ──────────────────────────────────────────────────────────────────
