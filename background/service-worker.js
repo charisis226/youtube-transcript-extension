@@ -184,12 +184,9 @@ async function handleSaveTranscript(message, sendResponse) {
   }
 
   try {
-    // Step 1: Extract transcript via Innertube API (params from ytInitialData)
+    // Step 1: Extract transcript via local Python server
     notify("transcript", "loading");
-    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const transcriptParams = activeTab ? await getTranscriptParamsFromPage(activeTab.id) : null;
-    const innertubePost = await makeInnertubePost();
-    const transcript = await extractTranscript(captionTracks, options.includeTimeline, videoId, innertubePost, transcriptParams);
+    const transcript = await extractTranscript(captionTracks, options.includeTimeline, videoId);
     notify("transcript", "done");
 
     // Step 2: Fetch metadata (fallback to basic info if API unavailable)
@@ -267,65 +264,6 @@ async function handleSaveTranscript(message, sendResponse) {
   }
 }
 
-async function makePageContextFetcher() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return null;
-    return (url) =>
-      new Promise((resolve) => {
-        chrome.tabs.sendMessage(tab.id, { type: "FETCH_URL", url }, (response) => {
-          resolve(response?.text || "");
-        });
-      });
-  } catch {
-    return null;
-  }
-}
-
-async function getTranscriptParamsFromPage(tabId) {
-  try {
-    const results = await chrome.scripting.executeScript({
-      target: { tabId },
-      world: "MAIN",
-      func: () => {
-        try {
-          const panels = window.ytInitialData?.engagementPanels;
-          if (!panels) return null;
-          for (const panel of panels) {
-            const items =
-              panel?.engagementPanelSectionListRenderer?.header
-                ?.engagementPanelTitleHeaderRenderer?.menu
-                ?.sortFilterSubMenuRenderer?.subMenuItems;
-            if (!items) continue;
-            for (const item of items) {
-              const params = item?.serviceEndpoint?.getTranscriptEndpoint?.params;
-              if (params) return params;
-            }
-          }
-        } catch {}
-        return null;
-      },
-    });
-    return results?.[0]?.result || null;
-  } catch {
-    return null;
-  }
-}
-
-async function makeInnertubePost() {
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab) return null;
-    return (body) =>
-      new Promise((resolve) => {
-        chrome.tabs.sendMessage(tab.id, { type: "GET_TRANSCRIPT_DATA", body }, (response) => {
-          resolve(response?.text || "");
-        });
-      });
-  } catch {
-    return null;
-  }
-}
 
 async function saveHistory(entry) {
   const { history = [] } = await chrome.storage.local.get("history");
