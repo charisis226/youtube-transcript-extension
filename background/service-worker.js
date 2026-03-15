@@ -184,10 +184,9 @@ async function handleSaveTranscript(message, sendResponse) {
   }
 
   try {
-    // Step 1: Extract transcript (fetch in page context to use YouTube session cookies)
+    // Step 1: Extract transcript via Innertube API
     notify("transcript", "loading");
-    const fetchXml = await makePageContextFetcher();
-    const transcript = await extractTranscript(captionTracks, options.includeTimeline, fetchXml);
+    const transcript = await extractTranscript(captionTracks, options.includeTimeline, videoId);
     notify("transcript", "done");
 
     // Step 2: Fetch metadata (fallback to basic info if API unavailable)
