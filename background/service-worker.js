@@ -184,13 +184,10 @@ async function handleSaveTranscript(message, sendResponse) {
   }
 
   try {
-    // Step 1: Extract transcript
+    // Step 1: Extract transcript (fetch in page context to use YouTube session cookies)
     notify("transcript", "loading");
-    const transcript = await extractTranscript(
-      captionTracks,
-      options.includeTimeline,
-      videoId
-    );
+    const fetchXml = await makePageContextFetcher();
+    const transcript = await extractTranscript(captionTracks, options.includeTimeline, fetchXml);
     notify("transcript", "done");
 
     // Step 2: Fetch metadata (fallback to basic info if API unavailable)
@@ -265,6 +262,31 @@ async function handleSaveTranscript(message, sendResponse) {
     sendResponse({ success: true });
   } catch (error) {
     sendResponse({ success: false, error: error.message });
+  }
+}
+
+async function makePageContextFetcher() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return null;
+    return async (url) => {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: "MAIN",
+        func: async (fetchUrl) => {
+          try {
+            const resp = await fetch(fetchUrl);
+            return resp.ok ? await resp.text() : "";
+          } catch {
+            return "";
+          }
+        },
+        args: [url],
+      });
+      return results?.[0]?.result || "";
+    };
+  } catch {
+    return null;
   }
 }
 
