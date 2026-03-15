@@ -9,13 +9,25 @@ window.addEventListener("message", (event) => {
   chrome.runtime.sendMessage(message).catch(() => {});
 });
 
-// Fetch URLs on behalf of the service worker (uses page cookies)
+// Handle requests from service worker that need page context (cookies, browser headers)
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "FETCH_URL") {
     fetch(message.url)
       .then((r) => (r.ok ? r.text() : ""))
       .then((text) => sendResponse({ text }))
       .catch(() => sendResponse({ text: "" }));
-    return true; // keep channel open for async response
+    return true;
+  }
+
+  if (message.type === "GET_TRANSCRIPT_DATA") {
+    fetch("https://www.youtube.com/youtubei/v1/get_transcript", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(message.body),
+    })
+      .then((r) => r.text())
+      .then((text) => sendResponse({ text }))
+      .catch((e) => sendResponse({ text: "", error: e.message }));
+    return true;
   }
 });

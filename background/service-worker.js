@@ -184,9 +184,10 @@ async function handleSaveTranscript(message, sendResponse) {
   }
 
   try {
-    // Step 1: Extract transcript via Innertube API
+    // Step 1: Extract transcript via Innertube API (through page context)
     notify("transcript", "loading");
-    const transcript = await extractTranscript(captionTracks, options.includeTimeline, videoId);
+    const innertubePost = await makeInnertubePost();
+    const transcript = await extractTranscript(captionTracks, options.includeTimeline, videoId, innertubePost);
     notify("transcript", "done");
 
     // Step 2: Fetch metadata (fallback to basic info if API unavailable)
@@ -271,6 +272,21 @@ async function makePageContextFetcher() {
     return (url) =>
       new Promise((resolve) => {
         chrome.tabs.sendMessage(tab.id, { type: "FETCH_URL", url }, (response) => {
+          resolve(response?.text || "");
+        });
+      });
+  } catch {
+    return null;
+  }
+}
+
+async function makeInnertubePost() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return null;
+    return (body) =>
+      new Promise((resolve) => {
+        chrome.tabs.sendMessage(tab.id, { type: "GET_TRANSCRIPT_DATA", body }, (response) => {
           resolve(response?.text || "");
         });
       });
