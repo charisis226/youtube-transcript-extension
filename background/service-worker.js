@@ -188,7 +188,8 @@ async function handleSaveTranscript(message, sendResponse) {
     notify("transcript", "loading");
     const transcript = await extractTranscript(
       captionTracks,
-      options.includeTimeline
+      options.includeTimeline,
+      videoId
     );
     notify("transcript", "done");
 
