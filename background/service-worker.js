@@ -125,12 +125,8 @@ async function handleGetAuthToken(sendResponse) {
 
 async function handleLogin(sendResponse) {
   try {
-    const clientId =
-      "222990237050-t2mrf74gujvi7rrl275u219f2aarr8as.apps.googleusercontent.com";
-    const scopes = [
-      "https://www.googleapis.com/auth/documents",
-      "https://www.googleapis.com/auth/youtube.readonly",
-    ];
+    const clientId = chrome.runtime.getManifest().oauth2.client_id;
+    const scopes = chrome.runtime.getManifest().oauth2.scopes;
     const redirectUri = chrome.identity.getRedirectURL();
 
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -160,7 +156,8 @@ async function handleLogin(sendResponse) {
       sendResponse({ error: "토큰을 받지 못했습니다." });
     }
   } catch (error) {
-    sendResponse({ error: error.message });
+    const redirectUri = chrome.identity.getRedirectURL();
+    sendResponse({ error: `${error.message} | redirect_uri: ${redirectUri}` });
   }
 }
 
