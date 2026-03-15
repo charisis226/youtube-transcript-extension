@@ -92,18 +92,28 @@ function setAuthUI(loggedIn) {
   const status = document.getElementById("auth-status");
   const loginBtn = document.getElementById("btn-login");
   const logoutBtn = document.getElementById("btn-logout");
+  const redirectBtn = document.getElementById("btn-show-redirect-uri");
 
   if (loggedIn) {
     status.textContent = "✅ Google 계정 연결됨";
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
+    redirectBtn.classList.add("hidden");
   } else {
     status.textContent = "로그인이 필요합니다.";
     loginBtn.classList.remove("hidden");
     logoutBtn.classList.add("hidden");
+    redirectBtn.classList.remove("hidden");
   }
   updateSaveButton();
 }
+
+document.getElementById("btn-show-redirect-uri").addEventListener("click", async () => {
+  const result = await chrome.runtime.sendMessage({ type: "GET_REDIRECT_URI" });
+  const el = document.getElementById("redirect-uri-display");
+  el.textContent = result?.redirectUri || "확인 불가";
+  el.classList.remove("hidden");
+});
 
 document.getElementById("btn-login").addEventListener("click", async () => {
   const errorEl = document.getElementById("auth-error");
