@@ -39,9 +39,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       handleLogin(sendResponse);
       return true;
 
-    case "GET_REDIRECT_URI":
-      sendResponse({ redirectUri: chrome.identity.getRedirectURL() });
-      return true;
 
     case "LOGOUT":
       handleLogout(sendResponse);
