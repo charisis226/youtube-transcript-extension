@@ -3,6 +3,9 @@ YouTube Transcript Server
 Run: python server.py
 """
 
+import os
+os.environ["FLASK_SKIP_DOTENV"] = "1"
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
